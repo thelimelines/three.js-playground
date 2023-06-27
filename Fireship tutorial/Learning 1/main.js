@@ -2,6 +2,7 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { TextureLoader } from 'three';
 
 // Scene
 const scene = new THREE.Scene();
@@ -20,10 +21,33 @@ renderer.shadowMap.enabled = true;
 const group = new THREE.Group();
 scene.add(group);
 
+// Starmap
+const loader = new THREE.TextureLoader();
+const starmapTexture = loader.load('starmap_16k.jpg');
+const starmapGeometry = new THREE.SphereGeometry(500, 64, 64); // Large radius
+const starmapMaterial = new THREE.MeshBasicMaterial({
+  map: starmapTexture,
+  side: THREE.BackSide, // Backside to render inside the sphere
+});
+const starmapMesh = new THREE.Mesh(starmapGeometry, starmapMaterial);
+scene.add(starmapMesh);
+
+// Load the sun texture
+const textureLoader = new THREE.TextureLoader();
+const sunTexture = textureLoader.load('2k_sun.jpg');
+
+// Create the sun sphere
+const sunGeometry = new THREE.SphereGeometry(2, 32, 32); // You can adjust the size (2) as needed
+const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
+const sunSphere = new THREE.Mesh(sunGeometry, sunMaterial);
+
 // Point Light
 const pointLight = new THREE.PointLight(0xFFFFFF);
 pointLight.position.set(0, 0, 0);
 pointLight.castShadow = true;
+
+// Add the sun sphere as a child of the point light
+pointLight.add(sunSphere);
 group.add(pointLight);
 
 // Light and Grid helpers
@@ -80,6 +104,7 @@ function animate() {
   group.rotation.x += 0.01;
   group.rotation.y += 0.015;
   group.rotation.z += 0.005;
+  sunSphere.rotation.y += 0.05; // Rotate the sun sphere along its polar axis
   scaleMultiplier = 1 + Math.sin(Date.now() * 0.001) * 0.1;
   torusKnot.scale.set(scaleMultiplier, scaleMultiplier, scaleMultiplier);
   hue = (hue + 0.01) % 1;
